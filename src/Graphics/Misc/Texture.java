@@ -15,7 +15,7 @@ public class Texture {
 
 	private SpriteSheet sheet;
 	
-	private Texture fliped;
+	private Texture fliped, baseTexture;
 	
 	public Texture(SpriteSheet sheet, int width, int height, int x, int y) {
 		this.sheet = sheet;
@@ -55,6 +55,55 @@ public class Texture {
 		for (int i = 0; i < width * height; i++) {
 			this.pixels[i] = pixels[i];
 		}
+	}
+	
+	public static Texture rotate(Texture texture, double angle) {
+		return new Texture(rotate(texture.pixels, texture.width, texture.height, angle), texture.width, texture.height);
+	} 
+	
+	private static int[] rotate(int[] pixels, int width, int height, double angle) {
+		int[] result = new int[width * height];
+		double nx_x = rotX(-angle, 1.0, 0.0);
+		double nx_y = rotY(-angle, 1.0, 0.0);
+		double ny_x = rotX(-angle, 0.0, 1.0);
+		double ny_y = rotY(-angle, 0.0, 1.0);
+		
+		double x0 = rotX(-angle, -width / 2.0, -height / 2.0) + width / 2.0;
+		double y0 = rotY(-angle, -width / 2.0, -height / 2.0) + height / 2.0;
+		
+		for (int y = 0;y < height;y++) {
+			double x1 = x0;
+			double y1 = y0; 
+			for (int x = 0;x < width;x++) {
+				int xx = (int) x1;
+				int yy = (int) y1;
+				int color;
+				if (xx < 0 || xx >= width || yy < 0 || yy >= height) 
+					color = 0xFFFF00FF;
+				else
+					color = pixels[xx + yy * width];
+				
+				result[x + y * width] = color;
+				x1 += nx_x;
+				y1 += nx_y;
+			}
+			x0 += ny_x;
+			y0 += ny_y;
+		}
+
+		return result;
+	}
+	
+	private static double rotX(double angle, double x, double y) {
+		double cos = Math.cos(angle - Math.PI / 2.0);
+		double sin = Math.sin(angle - Math.PI / 2.0);
+		return x * cos + y * -sin;
+	}
+	
+	private static double rotY(double angle, double x, double y) {
+		double cos = Math.cos(angle - Math.PI / 2.0);
+		double sin = Math.sin(angle - Math.PI / 2.0);
+		return x * sin + y * cos;
 	}
 	
 	public void load() {
